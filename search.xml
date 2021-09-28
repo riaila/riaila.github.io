@@ -29,6 +29,31 @@
     
     
     <entry>
+      <title>什么是渲染管线——以OPENGL为例</title>
+      <link href="/2020/10/23/TA/%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF/"/>
+      <url>/2020/10/23/TA/%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF/</url>
+      
+        <content type="html"><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script>    <div id="aplayer-DhvBtKHF" class="aplayer aplayer-tag-marker meting-tag-marker"         data-id="41602052" data-server="netease" data-type="song" data-mode="circulation" data-autoplay="false" data-mutex="true" data-listmaxheight="340px" data-preload="auto" data-theme="#555"    ></div><h1>前言</h1><p>什么是渲染管线？我们得到了一个模型或者是场景之后，通过CPU加载到内存中去，再将加载的数据交给GPU来进行渲染，GPU的渲染流程就像一个流水线一样，可以称为渲染管线。这里以OpenGL为例详细介绍。掌握渲染管线是每一个TA的基础和必修。下图为OpenGL的完整渲染管线，每一部分都会分开讲解。</p><p><img src="https://i.loli.net/2021/09/27/YILPCcnDqzbi23S.png" alt="OpenGL渲染管线"></p><h2 id="顶点着色器">顶点着色器</h2><p>在顶点着色器中，GPU会计算每个顶点的颜色。因为我们看到的是相机的画面，所以在这一步，GPU会将游戏物体的坐标，转换为相机视角下的坐标，具体的转换方法请移步[<a href="https://riaila.github.io/2020/09/13/GAMES101/GAMES101%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89%E2%80%94%E2%80%94MVP%20Transformation/">MVP变换</a>]。</p><h2 id="光栅化">光栅化</h2><p>在光栅化阶段，我们会将顶点信息转换为像素，转换的方法请看[<a href="https://riaila.github.io/2020/09/15/GAMES101/GAMES101%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89%E2%80%94%E2%80%94Rasterization/">光栅与反走样</a>]。</p><h2 id="片段着色器">片段着色器</h2><p>在片段着色器中，GPU会通过计算顶点插值的方法计算每一个像素的最终颜色，同时根据shader，计算光照,阴影等，这些信息都会影响到最终像素的颜色。</p><p>一般的渲染管线就由以上三部为主体。</p><h2 id="alpha测试">alpha测试</h2><p>通过指定透明度的像素来进行绘制。根据像素的透明度来进行判断，以此决定这个像素是否进行渲染。</p><h2 id="模板测试">模板测试</h2><p>通过指定模板的像素来进行绘制。我们可以给对应的像素一个标记，通过这个标记来觉得这个像素要不要进行渲染。</p><h2 id="深度测试">深度测试</h2><p>通过指定深度的像素来进行绘制。一般来说记录下相机视角下各个像素所对应的最小深度值并进行绘制。（通俗来说就是判断哪个东西在前就渲染哪个）当然也有例外。</p><h2 id="blend混合">blend混合</h2><p>我们将以上测试和着色计算出的像素，和原本空间顶点色插值到的像素颜色进行混合，此时我们已经计算得到了渲染的像素所要的信息，但不会在这一部显示出来。</p><h2 id="GBuffer，frontBuffer和FrameBuffer">GBuffer，frontBuffer和FrameBuffer</h2><p>blend之后的渲染结果会储存到缓冲区中，也就是GBuffer中，里面存放了待渲染像素的信息。</p><p>frontBuffer则是储存了下一帧所需要渲染像素的信息。</p><p>FrameBuffer既为当前显示器上正在显示的像素结果，也就是正式渲染，也意味着一个渲染管线流程的结束。</p><p>在FrameBuffer渲染完成后，其中的内容会和frontBuffer进行互换，FrameBuffer开始渲染下一帧的内容，GBuffer中储存的信息会更新frontBuffer中已被渲染的画面。</p><p>这样的一个双缓冲区设计也是一种非常常用的防止画面撕裂的技术。</p><h2 id="Shader">Shader</h2><p>shader的本质就是让我们可以让我们对管线中的一部分流程进行编辑自定义来达到我们想要的结果，在以上管线中，可以通过shader控制的部分有顶点着色器、片段着色器、三个测试和blend混合阶段。</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 技术美术 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> TA </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>GAMES101详细学习笔记（三）——Rasterization And Anti-aliasing</title>
       <link href="/2020/09/15/GAMES101/GAMES101%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89%E2%80%94%E2%80%94Rasterization/"/>
       <url>/2020/09/15/GAMES101/GAMES101%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89%E2%80%94%E2%80%94Rasterization/</url>
@@ -96,31 +121,6 @@
         <tags>
             
             <tag> 图形学 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>什么是渲染管线——以OPENGL为例</title>
-      <link href="/2020/09/12/TA/%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF/"/>
-      <url>/2020/09/12/TA/%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF/</url>
-      
-        <content type="html"><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script>    <div id="aplayer-qRQFgRpC" class="aplayer aplayer-tag-marker meting-tag-marker"         data-id="41602052" data-server="netease" data-type="song" data-mode="circulation" data-autoplay="false" data-mutex="true" data-listmaxheight="340px" data-preload="auto" data-theme="#555"    ></div><h1>前言</h1><p>什么是渲染管线？我们得到了一个模型或者是场景之后，通过CPU加载到内存中去，再将加载的数据交给GPU来进行渲染，GPU的渲染流程就像一个流水线一样，可以称为渲染管线。这里以OpenGL为例详细介绍。掌握渲染管线是每一个TA的基础和必修。下图为OpenGL的完整渲染管线，每一部分都会分开讲解。</p><p><img src="https://i.loli.net/2021/09/27/YILPCcnDqzbi23S.png" alt="OpenGL渲染管线"></p><h2 id="顶点着色器">顶点着色器</h2><p>在顶点着色器中，GPU会计算每个顶点的颜色。因为我们看到的是相机的画面，所以在这一步，GPU会将游戏物体的坐标，转换为相机视角下的坐标，具体的转换方法请移步[<a href="https://riaila.github.io/2020/09/13/GAMES101/GAMES101%E7%AC%94%E8%AE%B0%EF%BC%88%E4%BA%8C%EF%BC%89%E2%80%94%E2%80%94MVP%20Transformation/">MVP变换</a>]。</p><h2 id="光栅化">光栅化</h2><p>在光栅化阶段，我们会将顶点信息转换为像素，转换的方法请看[<a href="https://riaila.github.io/2020/09/15/GAMES101/GAMES101%E7%AC%94%E8%AE%B0%EF%BC%88%E4%B8%89%EF%BC%89%E2%80%94%E2%80%94Rasterization/">光栅与反走样</a>]。</p><h2 id="片段着色器">片段着色器</h2><p>在片段着色器中，GPU会通过计算顶点插值的方法计算每一个像素的最终颜色，同时根据shader，计算光照,阴影等，这些信息都会影响到最终像素的颜色。</p><p>一般的渲染管线就由以上三部为主体。</p><h2 id="alpha测试">alpha测试</h2><p>通过指定透明度的像素来进行绘制。根据像素的透明度来进行判断，以此决定这个像素是否进行渲染。</p><h2 id="模板测试">模板测试</h2><p>通过指定模板的像素来进行绘制。我们可以给对应的像素一个标记，通过这个标记来觉得这个像素要不要进行渲染。</p><h2 id="深度测试">深度测试</h2><p>通过指定深度的像素来进行绘制。一般来说记录下相机视角下各个像素所对应的最小深度值并进行绘制。（通俗来说就是判断哪个东西在前就渲染哪个）当然也有例外。</p><h2 id="blend混合">blend混合</h2><p>我们将以上测试和着色计算出的像素，和原本空间顶点色插值到的像素颜色进行混合，此时我们已经计算得到了渲染的像素所要的信息，但不会在这一部显示出来。</p><h2 id="GBuffer，frontBuffer和FrameBuffer">GBuffer，frontBuffer和FrameBuffer</h2><p>blend之后的渲染结果会储存到缓冲区中，也就是GBuffer中，里面存放了待渲染像素的信息。</p><p>frontBuffer则是储存了下一帧所需要渲染像素的信息。</p><p>FrameBuffer既为当前显示器上正在显示的像素结果，也就是正式渲染，也意味着一个渲染管线流程的结束。</p><p>在FrameBuffer渲染完成后，其中的内容会和frontBuffer进行互换，FrameBuffer开始渲染下一帧的内容，GBuffer中储存的信息会更新frontBuffer中已被渲染的画面。</p><p>这样的一个双缓冲区设计也是一种非常常用的防止画面撕裂的技术。</p><h2 id="Shader">Shader</h2><p>shader的本质就是让我们可以让我们对管线中的一部分流程进行编辑自定义来达到我们想要的结果，在以上管线中，可以通过shader控制的部分有顶点着色器、片段着色器、三个测试和blend混合阶段。</p>]]></content>
-      
-      
-      <categories>
-          
-          <category> 技术美术 </category>
-          
-      </categories>
-      
-      
-        <tags>
-            
-            <tag> TA </tag>
             
         </tags>
       

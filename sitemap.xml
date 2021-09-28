@@ -100,13 +100,6 @@
   </url>
   
   <url>
-    <loc>https://riaila.github.io/2020/09/12/TA/%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF/</loc>
-    
-    <lastmod>2021-09-15</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>https://riaila.github.io/link/index.html</loc>
     
     <lastmod>2021-09-15</lastmod>
@@ -121,6 +114,13 @@
   </url>
   
   <url>
+    <loc>https://riaila.github.io/2020/10/23/TA/%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF/</loc>
+    
+    <lastmod>2020-10-27</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://riaila.github.io/2021/09/12/hello-world/</loc>
     
     <lastmod>2020-08-22</lastmod>
@@ -130,7 +130,7 @@
 
   <url>
     <loc>https://riaila.github.io/</loc>
-    <lastmod>2021-09-27</lastmod>
+    <lastmod>2021-09-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -138,21 +138,21 @@
   
   <url>
     <loc>https://riaila.github.io/tags/%E5%85%AC%E5%91%8A/</loc>
-    <lastmod>2021-09-27</lastmod>
+    <lastmod>2021-09-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://riaila.github.io/tags/%E5%9B%BE%E5%BD%A2%E5%AD%A6/</loc>
-    <lastmod>2021-09-27</lastmod>
+    <lastmod>2021-09-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://riaila.github.io/tags/TA/</loc>
-    <lastmod>2021-09-27</lastmod>
+    <lastmod>2021-09-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
@@ -161,21 +161,21 @@
   
   <url>
     <loc>https://riaila.github.io/categories/%E5%85%B6%E4%BB%96/</loc>
-    <lastmod>2021-09-27</lastmod>
+    <lastmod>2021-09-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://riaila.github.io/categories/%E5%9B%BE%E5%BD%A2%E5%AD%A6/</loc>
-    <lastmod>2021-09-27</lastmod>
+    <lastmod>2021-09-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://riaila.github.io/categories/%E6%8A%80%E6%9C%AF%E7%BE%8E%E6%9C%AF/</loc>
-    <lastmod>2021-09-27</lastmod>
+    <lastmod>2021-09-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
