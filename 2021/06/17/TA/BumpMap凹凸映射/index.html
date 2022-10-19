@@ -1,0 +1,821 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BumpMap凹凸映射 | 迭代进心的Graphics Study Station</title><meta name="keywords" content="TA"><meta name="author" content="迭代进心"><meta name="copyright" content="迭代进心"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="baidu-site-verification" content="code-yWIZfrbW9p"><meta name="description" content="一、BumpMapping介绍 1.描述一个物体绘制在屏幕上（表达物体的细节）   宏观尺度    特征可能覆盖很多个像素 由顶点、三角形、其他几何图元表示 例如：角色的四肢、头部    中观尺度    特征可能覆盖几个像素 描述了宏观和微观尺度之间的特征 包含的细节比较复杂，无法用单个三角形进行渲染， 细节相对较大，可以被观察者看到几个像素 以上的变化 例如：人脸上的皱纹、肌肉的褶皱、砖头的缝隙">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BumpMap凹凸映射">
+<meta property="og:url" content="https://riaila.github.io/2021/06/17/TA/BumpMap%E5%87%B9%E5%87%B8%E6%98%A0%E5%B0%84/index.html">
+<meta property="og:site_name" content="迭代进心的Graphics Study Station">
+<meta property="og:description" content="一、BumpMapping介绍 1.描述一个物体绘制在屏幕上（表达物体的细节）   宏观尺度    特征可能覆盖很多个像素 由顶点、三角形、其他几何图元表示 例如：角色的四肢、头部    中观尺度    特征可能覆盖几个像素 描述了宏观和微观尺度之间的特征 包含的细节比较复杂，无法用单个三角形进行渲染， 细节相对较大，可以被观察者看到几个像素 以上的变化 例如：人脸上的皱纹、肌肉的褶皱、砖头的缝隙">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg">
+<meta property="article:published_time" content="2021-06-16T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-16T16:00:00.000Z">
+<meta property="article:author" content="迭代进心">
+<meta property="article:tag" content="TA">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg"><link rel="shortcut icon" href="/img/cloud-meatball-solid.svg"><link rel="canonical" href="https://riaila.github.io/2021/06/17/TA/BumpMap%E5%87%B9%E5%87%B8%E6%98%A0%E5%B0%84/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":100},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'BumpMap凹凸映射',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2021-06-17 00:00:00'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Zfour/hexo-electric-clock@1.0.6/clock.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Zfour/Butterfly-swiper/swiper/swiper.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Zfour/Butterfly-swiper/swiper/swiperstyle.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/maho.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">13</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 图库</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 影评</span></a></li><li><a class="site-page child" href="/game/"><i class="fa-fw fas fa-gamepad"></i><span> 游戏</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">迭代进心的Graphics Study Station</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 图库</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 影评</span></a></li><li><a class="site-page child" href="/game/"><i class="fa-fw fas fa-gamepad"></i><span> 游戏</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">BumpMap凹凸映射</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-06-16T16:00:00.000Z" title="发表于 2021-06-17 00:00:00">2021-06-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2021-06-16T16:00:00.000Z" title="更新于 2021-06-17 00:00:00">2021-06-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%8A%80%E6%9C%AF%E7%BE%8E%E6%9C%AF/">技术美术</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">4.5k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>16分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="BumpMap凹凸映射"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1>一、BumpMapping介绍</h1>
+<h2 id="1-描述一个物体绘制在屏幕上（表达物体的细节）">1.描述一个物体绘制在屏幕上（表达物体的细节）</h2>
+<ul>
+<li>
+<p>宏观尺度</p>
+</li>
+<li>
+<ul>
+<li>特征可能覆盖很多个像素</li>
+<li>由顶点、三角形、其他几何图元表示</li>
+<li>例如：角色的四肢、头部</li>
+</ul>
+</li>
+<li>
+<p>中观尺度</p>
+</li>
+<li>
+<ul>
+<li>特征可能覆盖几个像素</li>
+<li>描述了宏观和微观尺度之间的特征</li>
+<li>包含的细节比较复杂，无法用单个三角形进行渲染，</li>
+<li>细节相对较大，可以被观察者看到几个像素 以上的变化</li>
+<li>例如：人脸上的皱纹、肌肉的褶皱、砖头的缝隙</li>
+</ul>
+</li>
+<li>
+<p>微观尺度</p>
+</li>
+<li>
+<ul>
+<li>特征可能是一个像素</li>
+<li>通常在着色模型，写在像素着色器中，并且使用纹理贴图作为参数</li>
+<li>模拟了物体表面微观几何的相互作用</li>
+<li>例如：</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>有光泽的物体表面是光滑的、漫反射的物体，在微观下表面是粗糙的</li>
+<li>角色的皮肤和衣服看起来也是不同的，因为使用了不同的着色模型/不同的参数</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="2-Bump-Mapping">2.Bump Mapping</h2>
+<ul>
+<li>
+<p>模拟中观尺度的常用方法之一，可以让观察者感受到比模型尺度更小的细节</p>
+</li>
+<li>
+<p><strong>基本思想</strong>：</p>
+</li>
+<li>
+<ul>
+<li>在纹理中将尺度相关的信息编码进去</li>
+<li>着色过程中，用受到干扰的表面去代替真实的表面</li>
+<li>这样一来，表面就会有小尺度的细节</li>
+</ul>
+</li>
+<li>
+<p><strong>原理</strong>：</p>
+</li>
+<li>
+<ul>
+<li>从物体表面的贴图进行变化然后再进行光照计算的一种技术</li>
+<li>主要的原理是通过改变表面光照方程的法线，而不是表面的几何法线，或对每个待渲染的像素在计算照明之前都要加上一个从高度图中找到的扰动，来模拟凹凸不平的视觉特征</li>
+<li>例如：</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>给法线分量添加噪音（法线映射贴图）</li>
+<li>在一个保存扰动值的纹理图中进行查找（视差映射、浮雕映射贴图）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>是一种提升物体真实感的有效方法， 且不用提升额外的几何复杂度（不用改模型）</li>
+</ul>
+</li>
+<li>
+<p>列举一个使用法线贴图的效果</p>
+</li>
+<li>
+<ul>
+<li>可以看到，使用了法线贴图的有了明显的立体感和细节</li>
+<li>对于中间的高亮部分，左边的都是均匀的，而右边即使是很高亮度的部分也能看到阴影</li>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1623047481608-b72ca1b0-8620-4f84-8eee-17623eb57cd8.png" alt="img"></li>
+</ul>
+</li>
+</ul>
+<h2 id="3-Bump-Mapping（凹凸映射）的分类">3.Bump Mapping（凹凸映射）的分类</h2>
+<ul>
+<li>
+<ul>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1632552389605-0ae3ae31-2ce7-4e71-805f-c6d6b90e5a0f.png" alt="img"></li>
+</ul>
+</li>
+<li>
+<p>用处</p>
+</li>
+<li>
+<ul>
+<li>非常广泛，如增加模型的细节效果、或者做特殊的画面表现</li>
+</ul>
+</li>
+<li>
+<p>最常用的：</p>
+</li>
+<li>
+<ul>
+<li>法线映射，增加法线贴图后，会对局部的物体表面产生扰动，进而改变明暗关系，来达到增加表面细节的效果。</li>
+</ul>
+</li>
+<li>
+<p>三种映射都会用到法线贴图</p>
+</li>
+</ul>
+<h1>二、法线映射</h1>
+<h2 id="1-原理">1.原理</h2>
+<ul>
+<li>
+<p>法线贴图：存有物体局部表面法线信息的一张贴图</p>
+</li>
+<li>
+<p>使用过程：</p>
+</li>
+<li>
+<ul>
+<li>在计算光照时，程序会去读取法线图，冰获取到当前像素点的法线信息，结合光照信息进行光照计算。</li>
+</ul>
+</li>
+<li>
+<p>优点：</p>
+</li>
+<li>
+<ul>
+<li>使用法线贴图来计算光照，可以让物体表现出更多丰富的细节，且随着光照方向的变化而变化，这是普通的贴图做不到的。</li>
+</ul>
+</li>
+<li>
+<p>生成：</p>
+</li>
+<li>
+<ul>
+<li>法线贴图一般由高模映射到对应的低模上来生成。</li>
+<li>对于金属、木头这类细节丰富的物体，可以借助程序化的软件，如PS、SD来生成</li>
+</ul>
+</li>
+</ul>
+<h2 id="2-实现">2.实现</h2>
+<h3 id="①存储：切线空间">①存储：切线空间</h3>
+<ul>
+<li>
+<p>法线的存储，一般会放到模型的切线空间中</p>
+</li>
+<li>
+<p><strong>切线空间</strong>：</p>
+</li>
+<li>
+<ul>
+<li>以物体表面的切线，副切线和法线组成的几何空间</li>
+<li>每个顶点都有属于自己的<strong>切线空间</strong>，这个空间的原点是顶点本身，z轴是顶点的法线方向（n），x轴是顶点的切线方向（t），y轴有前边两个轴叉乘而来，被称为副切线（b）或者副法线。</li>
+<li>//可以参考入门精要第七章部分</li>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1623109779848-653cb82b-30b4-45da-ab4e-b89b1499c619.png" alt="img"></li>
+</ul>
+</li>
+<li>
+<p>在计算光照时，需要把相关的向量放在统一的坐标系下进行运算。此时就需要不同空间坐标的转换矩阵（世界空间转切线空间/切线空间转世界空间）</p>
+</li>
+</ul>
+<h3 id="②世界空间和切线空间的转换">②世界空间和切线空间的转换</h3>
+<ul>
+<li>
+<p>将世界坐标系下顶点的法线（Normal）、切线（Tangent）、副切线（Bitangent）作为切线空间坐标系的正交基。用这三个向量的标准正交基构建转换矩阵。对应关系为：法线方向作为z轴，切线方向作为x轴，副切线方向作为y轴</p>
+</li>
+<li>
+<p>转换矩阵：</p>
+</li>
+<li>
+<ul>
+<li>切线空间到世界空间的转换矩阵为一个3×3的旋转矩阵，一般称为TBN矩阵</li>
+<li>世界空间到切线空间的转换矩阵为上述TBN矩阵的逆矩阵，因为是正交矩阵，所以逆矩阵就是它的转置矩阵</li>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1623110676162-f627267d-65a5-4a26-ad9d-5d39e712abe5.png" alt="img"></li>
+<li>////TBN矩阵参考资料：</li>
+<li><a href="https://link.zhihu.com/?target=http%3A//www.opengl-tutorial.org/intermediate-tutorials/tutorial-13-normal-mapping/">Tutorial 13 : Normal Mapping</a></li>
+<li><a href="https://link.zhihu.com/?target=https%3A//blog.csdn.net/qq_35312463/article/details/105874855">GLSL-TBN矩阵_沉默的舞台剧的博客-CSDN博客_tbn矩阵</a></li>
+<li>//旋转矩阵的逆=转置可以参考《games101第四课》开头部分</li>
+</ul>
+</li>
+<li>
+<p>转换矩阵完成之后，接下来就是光照计算</p>
+</li>
+<li>
+<ul>
+<li>将光照计算中需要的数据，例如光照方向、观察方向、法线方向等参数，带入到光照模型中计算</li>
+</ul>
+</li>
+</ul>
+<h3 id="③切线空间的优点">③切线空间的优点</h3>
+<ul>
+<li>
+<p>法线存在各个空间里都可以，但关键不只是存在哪里，还有后续的光照计算</p>
+</li>
+<li>
+<p><strong>切线空间的好处</strong></p>
+</li>
+<li>
+<ul>
+<li>自由度高。</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>模型空间下是绝对法线信息（仅可以用在创建它时的那个模型）</li>
+<li>而切线空间下的是相对法线信息，是对当前物体法线的扰动。（可以复用）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>可进行uv动画。</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>比如：移动uv坐标来实现凹凸移动效果</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>可以重用法线纹理。</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>比如：一个立方体，6个面可以用一张法线贴图</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>可压缩。</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>由于切线空间下贴图中法线的Z方向总是正方向（模型空间下可以是负的），那么我们只存XY（切线和副切线）就能推出Z（法线）了，可以少存一个。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="3-法线贴图在Unity中的压缩格式">3.法线贴图在Unity中的压缩格式</h2>
+<ul>
+<li>
+<p>在非移动平台上，会把法线贴图转化为DXRT5nm格式</p>
+</li>
+<li>
+<ul>
+<li>这个格式只有两个有效GA通道（就是上边说的只存xy，推出z） ，分别对应法线的y、x分量可以节省空间。</li>
+</ul>
+</li>
+<li>
+<p>在移动平台上，使用传统RGB通道。</p>
+</li>
+<li>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1623113955939-f96c4310-f396-4b94-8b11-31f01b5b59c9.png" alt="img"></p>
+</li>
+<li>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1632538316184-f2a5f6ad-6f54-42da-b857-b18dd730c38b.png" alt="img"></p>
+</li>
+<li>
+<p><strong>关于解码法线贴图时要做一个“*2-1”的操作的解释</strong></p>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li><strong>法线纹理</strong>中<strong>存的就是表面法线</strong>，由于法线分量范围为[-1,1]，像素的分量范围为[0,1] 因此我们通常需要做一个映射：pixel=（normal+1）/2，解码时就要做一个反向的操作</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>关于normal.xy *= scale；的解释</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>是对法线的扰动效果进行缩放</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1>三、视差映射 <strong>Parallax Mapping</strong></h1>
+<h2 id="1-原理-2">1.原理</h2>
+<ul>
+<li>
+<p>视差贴图Parallax Mapping，又称为 Offset Mapping，以及virtual displacement mapping)，于2001年由Kaneko引入，由Welsh进行了改进和推广</p>
+</li>
+<li>
+<p>主要为了赋予模型表面遮挡关系的细节。引入了一张高度图</p>
+</li>
+<li>
+<p>可以和法线贴图一起使用，来产生一些真实的效果</p>
+</li>
+<li>
+<p>高度图一般视为顶点位移来使用，此时需要三角形足够多，模型足够精细，否则看起来会有块状</p>
+</li>
+<li>
+<p>如果在有限的三角形面的情况下，怎么办？这就用到了视差映射技术</p>
+</li>
+<li>
+<p><strong>视差映射技术</strong>：</p>
+</li>
+<li>
+<ul>
+<li>核心：改变纹理坐标</li>
+<li>需要一张存储模型信息的高度图，利用模型表面高度信息来对纹理进行偏移（例如：低位置的信息被高位置的信息遮挡掉了，所以会采样更高的信息）</li>
+</ul>
+</li>
+<li>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1623114551900-c134054a-6fdd-4f58-9960-45c27cec129d.png" alt="img"></p>
+</li>
+</ul>
+<h2 id="2-视差映射的实现">2.视差映射的实现</h2>
+<ul>
+<li>
+<p>和法线贴图一样，是欺骗眼睛的做法（只改变纹路，不增加三角形）</p>
+</li>
+<li>
+<p>我们的模型在<strong>切线空间</strong>下，所有的点都位于切线和副切线组成的平面内（图中0.0点），但实际上物体要有更丰富的细节。</p>
+</li>
+<li>
+<ul>
+<li>例如图中的情况</li>
+<li>如果不使用视差贴图，要计算当前视角下，片元A点（黄色）的信息，就是图中的Ha</li>
+<li>实际使用视差贴图时，真实的情况应该是视线和A点延长线和物体的交点，也就是B点，相应的就是Hb</li>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1623115407815-be9792eb-71c5-41d7-8353-1a1daef2f4a5.png" alt="img"></li>
+</ul>
+</li>
+<li>
+<p><strong>视差映射的具体算法</strong>：如何在知道A的uv值的情况下，算出B的uv值</p>
+</li>
+<li>
+<ul>
+<li>知道AB两者的偏移量即可</li>
+<li><strong>偏移量的获得</strong>：用近似的方法去求解</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>首先拿A的高度信息进行采样，得到物体表面距离水平面（0.0）的深度值Ha。</li>
+<li>用深度值Ha和视线的三角关系算出物体上等比的偏移方向，算出近似的B点（可以看到图中近似点B和实际点B还是有挺大差距的，所以模拟度比较低）</li>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1623116088083-911f95a3-6e25-46eb-b86a-340bfe0cea42.png" alt="img"></li>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1632538648642-c7a76865-527c-4980-8f19-7b24bf850227.png" alt="img"></li>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1632538514411-8460f9eb-5b17-4f5b-bebd-f751708b06c9.png" alt="img"></li>
+<li>得到偏移之后B点的uv，再去对法线贴图进行采样、计算时，就不会采样A点了，而是B点</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>理解：视差贴图是如何产生遮挡效果的</strong></p>
+</li>
+<li>
+<ul>
+<li>当视线看到的是A点这样深度吗 比较大的，那么视差贴图计算出的偏移值也是非常大的，这样A点最终被渲染出来的机会就比较小（偏移后就被采样到其他点上了）</li>
+<li>当视线看到B点这样深度比较小的点，计算出来的偏移就比较下，甚至原来点的附近，所以被采样的机会就比较大</li>
+<li>深度大的点很容易被深度小的点覆盖掉，这样就会表现出遮挡的效果</li>
+</ul>
+</li>
+</ul>
+<h2 id="3-陡视差映射-Steep-Parallax-Mapping">3.<strong>陡视差映射</strong> <strong>Steep Parallax Mapping</strong></h2>
+<ul>
+<li>
+<p>也是近似解，但比视差映射精确</p>
+</li>
+<li>
+<p><strong>基本思想</strong>：</p>
+</li>
+<li>
+<ul>
+<li>将物体表面分为若干层，从最顶端开始采样，<strong>每次沿着视角方向偏移一定的值</strong></li>
+<li>如果当前采样的层数，<strong>大于</strong>实际采样的层数，就停止采样。</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>例如图中D点，采样到0.75层，实际是0.5层，就停止采样，返回偏移坐标</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1623117012911-b3c83f2f-49f9-41de-a007-cc2b537cb163.png" alt="img"></li>
+</ul>
+</li>
+<li>
+<p><strong>陡视差映射的算法</strong>：（计算偏移点的过程）</p>
+</li>
+<li>
+<ul>
+<li>首先对A点采样，得到深度大约为0.8的位置，而其对应视线深度为0.0，不符合我们的基本思想，继续采样</li>
+<li>采样B点，深度为1，视线深度为0.25，不符合，继续采样</li>
+<li>采样C点，深度大约为0.8，视线深度为0.5，不符合，继续采样</li>
+<li>采样D点，采样深度为0.5，视线深度约为0.75，符合上述的条件，认为是比较合理的一个偏移点，就返回结果（return）。</li>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1634264688549-02507b00-4126-493b-9d48-913102ca14bd.png" alt="img"></li>
+</ul>
+</li>
+<li>
+<p><strong>陡视差的问题</strong>：</p>
+</li>
+<li>
+<ul>
+<li>在于分层机制，如果</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>分层多，性能开销就会大；</li>
+<li>分层小，渲染锯齿就比较明显。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>一种做法：可以根据视角v和法线n的角度限定采样层数</li>
+<li>锯齿问题会在浮雕贴图上做改善</li>
+</ul>
+</li>
+</ul>
+<h1>四、浮雕映射 <strong>Relief Mapping</strong></h1>
+<h2 id="1-原理-3">1.原理</h2>
+<ul>
+<li>可以更精确的计算uv偏移量(视差如果偏移量大的话就会失真)、提供更多的深度、还可以做自阴影以及闭塞效果</li>
+<li>例如下图：可以看到浮雕的凹凸深度明显更大，且凹凸有自阴影效果</li>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1623118047396-eace4191-9f91-4710-a6c6-4609d30e14f9.png" alt="img"></li>
+</ul>
+<h2 id="2-实现-2">2.实现</h2>
+<ul>
+<li>
+<p>浮雕映射一般用<strong>射线步进</strong>和<strong>二分查找</strong>来<strong>决定uv偏移量</strong></p>
+</li>
+<li>
+<ul>
+<li>第一步：射线步进部分，和视差贴图一样</li>
+<li>后边：二分查找部分：通过射线步进找到合适的步进后，在此步进内使用二分查找来找到精确的偏移值</li>
+</ul>
+</li>
+<li>
+<p><strong>为什么不直接使用二分查找？</strong></p>
+</li>
+<li>
+<ul>
+<li>会产生比较大的误差</li>
+<li>下图为例</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>如果直接使用二分查找，在深度0和1的中间的1点，进一步为2点 -&gt; 3点 -&gt;Q点。但我们要的结果是P点，可以看到结果很明显是错误的</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1632541503483-b9621f13-be6c-45dd-995d-18ee78d04a41.png" alt="img"></li>
+</ul>
+</li>
+</ul>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//浮雕贴图</span></span><br><span class="line">            <span class="function">float2 <span class="title">ReliefMapping</span>(<span class="params">float2 uv, real3 viewDirTS</span>)</span></span><br><span class="line">            &#123;</span><br><span class="line">                float2 offlayerUV = viewDirTS.xy / viewDirTS.z * _HeightScale;</span><br><span class="line">                <span class="built_in">float</span> RayNumber = <span class="number">20</span>;</span><br><span class="line">                <span class="built_in">float</span> layerHeight = <span class="number">1.0</span> / RayNumber;</span><br><span class="line">                float2 SteppingUV = offlayerUV / RayNumber;</span><br><span class="line">                <span class="built_in">float</span> offlayerUVL = length(offlayerUV);</span><br><span class="line">                <span class="built_in">float</span> currentLayerHeight = <span class="number">0</span>;</span><br><span class="line">                </span><br><span class="line">                float2 offuv= float2(<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">                <span class="keyword">for</span> (<span class="built_in">int</span> i = <span class="number">0</span>; i &lt; RayNumber; i++)</span><br><span class="line">                &#123;</span><br><span class="line">                    offuv += SteppingUV;</span><br><span class="line"></span><br><span class="line">                    <span class="built_in">float</span> currentHeight = tex2D(_HeightMap, uv + offuv).r;</span><br><span class="line">                    currentLayerHeight += layerHeight;</span><br><span class="line">                    <span class="keyword">if</span> (currentHeight &lt; currentLayerHeight)</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                float2 T0 = uv-SteppingUV, T1 = uv + offuv;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">for</span> (<span class="built_in">int</span> j = <span class="number">0</span>;j&lt;<span class="number">20</span>;j++)</span><br><span class="line">                &#123;</span><br><span class="line">                    float2 P0 = (T0 + T1) / <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">                    <span class="built_in">float</span> P0Height = tex2D(_HeightMap, P0).r;</span><br><span class="line"></span><br><span class="line">                    <span class="built_in">float</span> P0LayerHeight = length(P0) / offlayerUVL;</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">if</span> (P0Height &lt; P0LayerHeight)</span><br><span class="line">                    &#123;</span><br><span class="line">                        T0 = P0;</span><br><span class="line"></span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">else</span></span><br><span class="line">                    &#123;</span><br><span class="line">                        T1= P0;</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">return</span> (T0 + T1) / <span class="number">2</span> - uv;</span><br><span class="line">            &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="3-视差闭塞贴图（POM-Parallax-Occlusion-Mapping）">3.视差闭塞贴图（POM = Parallax  Occlusion Mapping）</h2>
+<ul>
+<li>
+<p>相对于浮雕贴图，不同之处在于最后一步</p>
+</li>
+<li>
+<ul>
+<li>浮雕贴图是在确认最后步进之后进行二分查找（在迭代次数比较多的情况下，还是挺耗的）</li>
+<li>视差闭塞贴图是在最后步进的两端uv值进行采样（下图红色箭头），采样之后再对这两个结果进行插值，插值的结果作为P点最终的偏移值</li>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1623119164928-fc31e7cf-a23c-4fe6-888f-ac8335c47e5a.png" alt="img"></li>
+</ul>
+</li>
+<li>
+<p>优点：</p>
+</li>
+<li>
+<ul>
+<li>相对于浮雕映射，性能更好（最后只做插值，而浮雕要做二分查找）</li>
+<li>相对于陡视差贴图，精确性更好</li>
+</ul>
+</li>
+<li>
+<p>要求：</p>
+</li>
+<li>
+<ul>
+<li>因为最后要做插值，所以要求表面是相对比较平滑/连续的，如果有莫名的凸起结果可能会出错</li>
+</ul>
+</li>
+</ul>
+<h1>###作业部分###</h1>
+<p>作业-思考：在2.4节的基础上，扩展法线的用法。</p>
+<h2 id="1、还原法线映射、视差映射、浮雕映射">1、还原法线映射、视差映射、浮雕映射</h2>
+<h3 id="①本节举例项目工程URP代码">①本节举例项目工程URP代码</h3>
+<p>//这里为课程实例工程的代码，需要的可以自行查找</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br></pre></td><td class="code"><pre><span class="line">Shader <span class="string">&quot;Bump Mapping&quot;</span></span><br><span class="line">&#123;</span><br><span class="line">    Properties</span><br><span class="line">    &#123;</span><br><span class="line">        _MainTex (<span class="string">&quot;Texture&quot;</span>, <span class="number">2</span>D) = <span class="string">&quot;white&quot;</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line">        [<span class="meta">Toggle(_NORMALMAP)</span>] _EnableBumpMap(<span class="string">&quot;Enable Normal/Bump Map&quot;</span>, Float) = <span class="number">0.0</span></span><br><span class="line">        _NormalMap(<span class="string">&quot;NormalMap&quot;</span>,<span class="number">2</span>D) = <span class="string">&quot;bump&quot;</span> &#123;&#125;</span><br><span class="line">        _NormalScale(<span class="string">&quot;NormalScale&quot;</span> ,Float) = <span class="number">1</span></span><br><span class="line"></span><br><span class="line">        [<span class="meta">Toggle(_HEIGHTMAP)</span>] _EnableHeightMap(<span class="string">&quot;Enable Height Map&quot;</span>,Float) = <span class="number">0.0</span></span><br><span class="line">        [<span class="meta">Toggle(_RELIEFMAP)</span>] _EnableReliefMap(<span class="string">&quot;Enable Relief Map&quot;</span>,Float) = <span class="number">0.0</span></span><br><span class="line">        _HeightMap(<span class="string">&quot;HeigheMap&quot;</span>,<span class="number">2</span>D) = <span class="string">&quot;white&quot;</span>&#123;&#125;</span><br><span class="line">        _HeightScale(<span class="string">&quot;HeightScale&quot;</span>,range(<span class="number">0</span>,<span class="number">0.5</span>)) = <span class="number">0.005</span></span><br><span class="line"></span><br><span class="line">        _Smoothness(<span class="string">&quot;Smoothness&quot;</span>,range(<span class="number">0</span>,<span class="number">2</span>)) = <span class="number">0.5</span></span><br><span class="line">        _Metallic(<span class="string">&quot;Metallic&quot;</span>,range(<span class="number">0</span>,<span class="number">1</span>)) = <span class="number">0.2</span></span><br><span class="line">    &#125;</span><br><span class="line">    SubShader</span><br><span class="line">    &#123;</span><br><span class="line">        Tags</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">&quot;RenderType&quot;</span>=<span class="string">&quot;Opaque&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">        LOD <span class="number">100</span></span><br><span class="line"></span><br><span class="line">        HLSLINCLUDE</span><br><span class="line">        <span class="comment">// Material Keywords</span></span><br><span class="line">        <span class="meta">#<span class="meta-keyword">pragma</span> shader_feature _NORMALMAP</span></span><br><span class="line">        <span class="meta">#<span class="meta-keyword">pragma</span> shader_feature _HEIGHTMAP</span></span><br><span class="line">        <span class="meta">#<span class="meta-keyword">pragma</span> shader_feature _RELIEFMAP</span></span><br><span class="line">        <span class="comment">//#pragma shader_feature _SPECULAR_COLOR</span></span><br><span class="line"></span><br><span class="line">        <span class="meta">#include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl&quot;</span></span><br><span class="line">        <span class="meta">#include &quot;Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl&quot;</span></span><br><span class="line">        ENDHLSL</span><br><span class="line"></span><br><span class="line">        Pass</span><br><span class="line">        &#123;</span><br><span class="line">            Name <span class="string">&quot;URPLighting&quot;</span></span><br><span class="line">            Tags</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="string">&quot;LightMode&quot;</span> = <span class="string">&quot;UniversalForward&quot;</span></span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            HLSLPROGRAM</span><br><span class="line">            <span class="meta">#<span class="meta-keyword">pragma</span> vertex vert</span></span><br><span class="line">            <span class="meta">#<span class="meta-keyword">pragma</span> fragment frag</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">struct</span> appdata</span><br><span class="line">            &#123;</span><br><span class="line">                float4 positionOS : POSITION;</span><br><span class="line">                float3 normalOS : NORMAL;</span><br><span class="line">                float2 uv : TEXCOORD0;</span><br><span class="line"></span><br><span class="line">                float4 tangentOS : TANGENT;</span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">struct</span> v2f</span><br><span class="line">            &#123;</span><br><span class="line">                float4 positionCS : SV_POSITION;</span><br><span class="line">                float3 normalWS:TEXCOORD0;</span><br><span class="line">                float3 viewDirWS:TEXCOORD1;</span><br><span class="line"></span><br><span class="line">                <span class="comment">// Note this macro is using TEXCOORD2</span></span><br><span class="line">                DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, <span class="number">2</span>);</span><br><span class="line">                float4 uv : TEXCOORD3;</span><br><span class="line">                <span class="meta">#<span class="meta-keyword">if</span> defined(_HEIGHTMAP) || defined (_NORMALMAP)</span></span><br><span class="line">				float4 tangentWS:TEXCOORD4;</span><br><span class="line">                <span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">                <span class="meta">#ifdef _HEIGHTMAP</span></span><br><span class="line">                   float4 uv2 : TEXCOORD5;        </span><br><span class="line">                <span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">            &#125;;</span><br><span class="line"></span><br><span class="line">            sampler2D _MainTex;</span><br><span class="line">            float4 _MainTex_ST;</span><br><span class="line">            <span class="built_in">float</span> _Smoothness;</span><br><span class="line">            sampler2D _NormalMap;</span><br><span class="line">            float4 _NormalMap_ST;</span><br><span class="line">            <span class="built_in">float</span> _Metallic;</span><br><span class="line">            <span class="built_in">float</span> _NormalScale;</span><br><span class="line">            sampler2D _HeightMap;</span><br><span class="line">            float4 _HeightMap_ST;</span><br><span class="line">            <span class="built_in">float</span> _HeightScale;</span><br><span class="line"></span><br><span class="line">            <span class="function">v2f <span class="title">vert</span>(<span class="params">appdata v</span>)</span></span><br><span class="line">            &#123;</span><br><span class="line">                v2f o;</span><br><span class="line">                VertexPositionInputs positionInputs = GetVertexPositionInputs(v.positionOS.xyz);</span><br><span class="line"></span><br><span class="line">                o.positionCS = positionInputs.positionCS;</span><br><span class="line">                o.viewDirWS = GetWorldSpaceViewDir(positionInputs.positionWS);</span><br><span class="line"></span><br><span class="line">                o.uv.xy = TRANSFORM_TEX(v.uv, _MainTex);</span><br><span class="line">                VertexNormalInputs normalInputs = GetVertexNormalInputs(v.normalOS, v.tangentOS);</span><br><span class="line">                o.normalWS = normalInputs.normalWS;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">                <span class="meta">#<span class="meta-keyword">if</span> defined (_HEIGHTMAP) ||  defined (_NORMALMAP)</span></span><br><span class="line">                     real sign = v.tangentOS.w * GetOddNegativeScale();</span><br><span class="line">				     half4 tangentWS = half4(normalInputs.tangentWS.xyz, sign);</span><br><span class="line">                     o.tangentWS = tangentWS;</span><br><span class="line">                <span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">                <span class="meta">#ifdef _NORMALMAP</span></span><br><span class="line">                    o.uv.zw = TRANSFORM_TEX(v.uv, _NormalMap);</span><br><span class="line"></span><br><span class="line">                <span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">                <span class="meta">#ifdef _HEIGHTMAP</span></span><br><span class="line">                     o.uv2.xy = TRANSFORM_TEX(v.uv, _HeightMap);</span><br><span class="line">                <span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">                OUTPUT_SH(normalInputs.normalWS.xyz, o.vertexSH);</span><br><span class="line">                <span class="keyword">return</span> o;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">//视差映射</span></span><br><span class="line">            <span class="function">float2 <span class="title">ParallaxMapping</span>(<span class="params">float2 Huv, real3 viewDirTS</span>)</span></span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">float</span> height = tex2D(_HeightMap, Huv).r;</span><br><span class="line">                float2 offuv = viewDirTS.xy / viewDirTS.z * height * _HeightScale;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">return</span> offuv;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">//陡峭视差映射</span></span><br><span class="line">            <span class="function">float2 <span class="title">SteepParallaxMapping</span>(<span class="params">float2 uv, real3 viewDirTS</span>)</span></span><br><span class="line">            &#123;</span><br><span class="line">                <span class="built_in">float</span> numLayers = <span class="number">20.0</span>;</span><br><span class="line"></span><br><span class="line">                <span class="built_in">float</span> layerHeight = <span class="number">1.0</span> / numLayers;</span><br><span class="line"></span><br><span class="line">                <span class="built_in">float</span> currentLayerHeight = <span class="number">0.0</span>;</span><br><span class="line"></span><br><span class="line">                float2 offlayerUV = viewDirTS.xy / viewDirTS.z * _HeightScale;</span><br><span class="line"></span><br><span class="line">                float2 Stepping = offlayerUV / numLayers;</span><br><span class="line"></span><br><span class="line">                float2 currentUV = uv;</span><br><span class="line"></span><br><span class="line">                float2 AddUV = float2(<span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">                <span class="built_in">float</span> currentHeightMapValue = tex2D(_HeightMap, currentUV + AddUV).r;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">for</span> (<span class="built_in">int</span> i = <span class="number">0</span>; i &lt; numLayers; i++)</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="keyword">if</span> (currentLayerHeight &gt; currentHeightMapValue)</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="keyword">return</span> AddUV;</span><br><span class="line">                    &#125;</span><br><span class="line">                    AddUV += Stepping;</span><br><span class="line">                    currentHeightMapValue = tex2D(_HeightMap, currentUV + AddUV).r;</span><br><span class="line">                    currentLayerHeight += layerHeight;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span> AddUV;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">//浮雕贴图</span></span><br><span class="line">            <span class="function">float2 <span class="title">ReliefMapping</span>(<span class="params">float2 uv, real3 viewDirTS</span>)</span></span><br><span class="line">            &#123;</span><br><span class="line">                float2 offlayerUV = viewDirTS.xy / viewDirTS.z * _HeightScale;</span><br><span class="line">                <span class="built_in">float</span> RayNumber = <span class="number">20</span>;</span><br><span class="line">                <span class="built_in">float</span> layerHeight = <span class="number">1.0</span> / RayNumber;</span><br><span class="line">                float2 SteppingUV = offlayerUV / RayNumber;</span><br><span class="line">                <span class="built_in">float</span> offlayerUVL = length(offlayerUV);</span><br><span class="line">                <span class="built_in">float</span> currentLayerHeight = <span class="number">0</span>;</span><br><span class="line">                </span><br><span class="line">                float2 offuv= float2(<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">                <span class="keyword">for</span> (<span class="built_in">int</span> i = <span class="number">0</span>; i &lt; RayNumber; i++)</span><br><span class="line">                &#123;</span><br><span class="line">                    offuv += SteppingUV;</span><br><span class="line"></span><br><span class="line">                    <span class="built_in">float</span> currentHeight = tex2D(_HeightMap, uv + offuv).r;</span><br><span class="line">                    currentLayerHeight += layerHeight;</span><br><span class="line">                    <span class="keyword">if</span> (currentHeight &lt; currentLayerHeight)</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                float2 T0 = uv-SteppingUV, T1 = uv + offuv;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">for</span> (<span class="built_in">int</span> j = <span class="number">0</span>;j&lt;<span class="number">20</span>;j++)</span><br><span class="line">                &#123;</span><br><span class="line">                    float2 P0 = (T0 + T1) / <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">                    <span class="built_in">float</span> P0Height = tex2D(_HeightMap, P0).r;</span><br><span class="line"></span><br><span class="line">                    <span class="built_in">float</span> P0LayerHeight = length(P0) / offlayerUVL;</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">if</span> (P0Height &lt; P0LayerHeight)</span><br><span class="line">                    &#123;</span><br><span class="line">                        T0 = P0;</span><br><span class="line"></span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">else</span></span><br><span class="line">                    &#123;</span><br><span class="line">                        T1= P0;</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">return</span> (T0 + T1) / <span class="number">2</span> - uv;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="function">half4 <span class="title">frag</span>(<span class="params">v2f i</span>) : SV_Target</span></span><br><span class="line">            &#123;</span><br><span class="line">                <span class="meta">#<span class="meta-keyword">if</span> defined(_HEIGHTMAP) || defined (_NORMALMAP)</span></span><br><span class="line"></span><br><span class="line">                <span class="built_in">float</span> sgn = i.tangentWS.w;</span><br><span class="line"></span><br><span class="line">				float3 bitangent = sgn * cross(i.normalWS.xyz, i.tangentWS.xyz);</span><br><span class="line">                half3x3 T2W = half3x3(i.tangentWS.xyz, bitangent.xyz, i.normalWS.xyz);</span><br><span class="line">                </span><br><span class="line">                <span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">                float3 viewDirWS = normalize(i.viewDirWS);</span><br><span class="line">                <span class="comment">//视差映射</span></span><br><span class="line">                <span class="meta">#ifdef _HEIGHTMAP</span></span><br><span class="line">                    real3 viewDirTS = normalize(TransformWorldToTangent(-viewDirWS.xyz,T2W));</span><br><span class="line">                    float2 offuv = float2(<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">                    <span class="meta">#ifdef _RELIEFMAP</span></span><br><span class="line">                        offuv = ReliefMapping( i.uv2.xy, viewDirTS);  <span class="comment">//陡峭视差映射</span></span><br><span class="line">                    <span class="meta">#<span class="meta-keyword">else</span></span></span><br><span class="line">                        offuv = ParallaxMapping( i.uv2.xy, viewDirTS); <span class="comment">//普通视差映射</span></span><br><span class="line">                    <span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">                    i.uv.xy += offuv;</span><br><span class="line">                    i.uv.zw += offuv;</span><br><span class="line">                </span><br><span class="line">                <span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">                <span class="comment">// sample the texture</span></span><br><span class="line">                half4 col = tex2D(_MainTex, i.uv.xy);</span><br><span class="line"></span><br><span class="line">                <span class="comment">// URP 光照</span></span><br><span class="line">                SurfaceData surfaceData = (SurfaceData)<span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">                surfaceData.albedo = col;</span><br><span class="line">                surfaceData.alpha = col.a;</span><br><span class="line">                surfaceData.smoothness = _Smoothness;</span><br><span class="line">                surfaceData.metallic = _Metallic;</span><br><span class="line">                surfaceData.occlusion = <span class="number">1</span>;</span><br><span class="line">                InputData inputData = (InputData)<span class="number">0</span>;</span><br><span class="line">                inputData.viewDirectionWS = viewDirWS;</span><br><span class="line">                <span class="comment">//法线映射</span></span><br><span class="line">                <span class="meta">#ifdef _NORMALMAP</span></span><br><span class="line">                 float3 normalTS = UnpackNormalScale(tex2D(_NormalMap,i.uv.zw), _NormalScale);</span><br><span class="line">				 i.normalWS = TransformTangentToWorld(normalTS, T2W);</span><br><span class="line">                <span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">                inputData.bakedGI = SAMPLE_GI(i.lightmapUV, i.vertexSH, i.normalWS);</span><br><span class="line">                inputData.normalWS = i.normalWS;</span><br><span class="line"></span><br><span class="line">                half4 color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic,</span><br><span class="line">                                                   surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion,</span><br><span class="line">                                                   surfaceData.emission, surfaceData.alpha);</span><br><span class="line"></span><br><span class="line">                <span class="keyword">return</span> color;</span><br><span class="line">            &#125;</span><br><span class="line">            ENDHLSL</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="②自己动手还原">②自己动手还原</h3>
+<h2 id="2、上述的应用案例">2、上述的应用案例</h2>
+<ul>
+<li>
+<p>视差效果</p>
+</li>
+<li>
+<ul>
+<li>参考May的眼球Demo，位于2.8flowmap的p1后半部分</li>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Lb411N7xu">https://www.bilibili.com/video/BV1Lb411N7xu</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="3、具体实践">3、具体实践</h2>
+<ul>
+<li>在UE4中用多层视差做了冰的效果</li>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1640418182152-a9ce1b2f-aab8-48a4-a2d9-1feff9a5c1a1.png" alt="img"></li>
+</ul>
+<h3 id="补充：">补充：</h3>
+<p>法线还可以用来对uv进行扰动，比如用在后处理的破碎玻璃效果，不过想要效果做得好的话，对法线贴图的要求比较高，最好做出高度差的效果</p>
+<p>贴一下之前做得一个效果</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/gif/12962324/1658311237997-2ba8dbae-f7d9-480f-96c0-9ab03cc1f3b3.gif" alt="img"></p>
+<h2 id="4、Reference">4、Reference</h2>
+<ul>
+<li>
+<p>利用视差做冰材质</p>
+</li>
+<li>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/leelizc/article/details/78609282">https://blog.csdn.net/leelizc/article/details/78609282</a></li>
+</ul>
+</li>
+<li>
+<p>《Real-Time Rendering 3rd》 提炼总结(五) 第六章 · 纹理贴图及相关技-毛星云</p>
+</li>
+<li>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/27551369">https://zhuanlan.zhihu.com/p/27551369</a></li>
+</ul>
+</li>
+<li>
+<p>UE4材质视差算法</p>
+</li>
+<li>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/150949320">https://zhuanlan.zhihu.com/p/150949320</a></li>
+</ul>
+</li>
+<li>
+<p><a target="_blank" rel="noopener" href="https://realtimevfx.com/t/shaders-gwent-parallax-card-mockup-sketch/15117">https://realtimevfx.com/t/shaders-gwent-parallax-card-mockup-sketch/15117</a></p>
+</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">迭代进心</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://riaila.github.io/2021/06/17/TA/BumpMap%E5%87%B9%E5%87%B8%E6%98%A0%E5%B0%84/">https://riaila.github.io/2021/06/17/TA/BumpMap%E5%87%B9%E5%87%B8%E6%98%A0%E5%B0%84/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://riaila.github.io" target="_blank">迭代进心的Graphics Study Station</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/TA/">TA</a></div><div class="post_share"><div class="social-share" data-image="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2021/07/03/TA/FlowMap/"><img class="prev-cover" src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">FlowMap效果实现</div></div></a></div><div class="next-post pull-right"><a href="/2021/06/11/TA/%E4%BC%BD%E9%A9%AC%EF%BC%88Gamma%EF%BC%89%E6%A0%A1%E6%AD%A3/"><img class="next-cover" src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">伽马（Gamma）校正</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span> 相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2020/10/23/TA/渲染管线/" title="什么是渲染管线——以OPENGL为例"><img class="cover" src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2020-10-23</div><div class="title">什么是渲染管线——以OPENGL为例</div></div></a></div><div><a href="/2021/06/11/TA/伽马（Gamma）校正/" title="伽马（Gamma）校正"><img class="cover" src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-06-11</div><div class="title">伽马（Gamma）校正</div></div></a></div><div><a href="/2021/06/01/TA/LDR，HDR/" title="LDR与HDR"><img class="cover" src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-06-01</div><div class="title">LDR与HDR</div></div></a></div><div><a href="/2021/07/03/TA/FlowMap/" title="FlowMap效果实现"><img class="cover" src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-07-03</div><div class="title">FlowMap效果实现</div></div></a></div><div><a href="/2021/07/20/TA/曲面细分着色器/" title="曲面细分与几何着色器"><img class="cover" src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-07-20</div><div class="title">曲面细分与几何着色器</div></div></a></div><div><a href="/2022/01/02/TA/实时阴影/" title="实时阴影"><img class="cover" src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-02</div><div class="title">实时阴影</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC81NDMxNC8zMDc4NQ=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/maho.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">迭代进心</div><div class="author-info__description">运气就是一阵风</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">13</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="mailto:wpwuqie@163.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a><a class="social-icon" href="https://i.loli.net/2021/09/18/m6XktaRc9pDWFQy.png" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="https://www.zhihu.com/people/xia-bu-44/posts" target="_blank" title="知乎"><i class="fab fa-zhihu"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">欢迎来到本站！转载文章请标明出处！谢谢！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">1.</span> <span class="toc-text">一、BumpMapping介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%8F%8F%E8%BF%B0%E4%B8%80%E4%B8%AA%E7%89%A9%E4%BD%93%E7%BB%98%E5%88%B6%E5%9C%A8%E5%B1%8F%E5%B9%95%E4%B8%8A%EF%BC%88%E8%A1%A8%E8%BE%BE%E7%89%A9%E4%BD%93%E7%9A%84%E7%BB%86%E8%8A%82%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">1.描述一个物体绘制在屏幕上（表达物体的细节）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Bump-Mapping"><span class="toc-number">1.2.</span> <span class="toc-text">2.Bump Mapping</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Bump-Mapping%EF%BC%88%E5%87%B9%E5%87%B8%E6%98%A0%E5%B0%84%EF%BC%89%E7%9A%84%E5%88%86%E7%B1%BB"><span class="toc-number">1.3.</span> <span class="toc-text">3.Bump Mapping（凹凸映射）的分类</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">2.</span> <span class="toc-text">二、法线映射</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%8E%9F%E7%90%86"><span class="toc-number">2.1.</span> <span class="toc-text">1.原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%AE%9E%E7%8E%B0"><span class="toc-number">2.2.</span> <span class="toc-text">2.实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%91%A0%E5%AD%98%E5%82%A8%EF%BC%9A%E5%88%87%E7%BA%BF%E7%A9%BA%E9%97%B4"><span class="toc-number">2.2.1.</span> <span class="toc-text">①存储：切线空间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%91%A1%E4%B8%96%E7%95%8C%E7%A9%BA%E9%97%B4%E5%92%8C%E5%88%87%E7%BA%BF%E7%A9%BA%E9%97%B4%E7%9A%84%E8%BD%AC%E6%8D%A2"><span class="toc-number">2.2.2.</span> <span class="toc-text">②世界空间和切线空间的转换</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%91%A2%E5%88%87%E7%BA%BF%E7%A9%BA%E9%97%B4%E7%9A%84%E4%BC%98%E7%82%B9"><span class="toc-number">2.2.3.</span> <span class="toc-text">③切线空间的优点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%B3%95%E7%BA%BF%E8%B4%B4%E5%9B%BE%E5%9C%A8Unity%E4%B8%AD%E7%9A%84%E5%8E%8B%E7%BC%A9%E6%A0%BC%E5%BC%8F"><span class="toc-number">2.3.</span> <span class="toc-text">3.法线贴图在Unity中的压缩格式</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">3.</span> <span class="toc-text">三、视差映射 Parallax Mapping</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%8E%9F%E7%90%86-2"><span class="toc-number">3.1.</span> <span class="toc-text">1.原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%A7%86%E5%B7%AE%E6%98%A0%E5%B0%84%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.2.</span> <span class="toc-text">2.视差映射的实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E9%99%A1%E8%A7%86%E5%B7%AE%E6%98%A0%E5%B0%84-Steep-Parallax-Mapping"><span class="toc-number">3.3.</span> <span class="toc-text">3.陡视差映射 Steep Parallax Mapping</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">4.</span> <span class="toc-text">四、浮雕映射 Relief Mapping</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%8E%9F%E7%90%86-3"><span class="toc-number">4.1.</span> <span class="toc-text">1.原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%AE%9E%E7%8E%B0-2"><span class="toc-number">4.2.</span> <span class="toc-text">2.实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E8%A7%86%E5%B7%AE%E9%97%AD%E5%A1%9E%E8%B4%B4%E5%9B%BE%EF%BC%88POM-Parallax-Occlusion-Mapping%EF%BC%89"><span class="toc-number">4.3.</span> <span class="toc-text">3.视差闭塞贴图（POM &#x3D; Parallax  Occlusion Mapping）</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">5.</span> <span class="toc-text">###作业部分###</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81%E8%BF%98%E5%8E%9F%E6%B3%95%E7%BA%BF%E6%98%A0%E5%B0%84%E3%80%81%E8%A7%86%E5%B7%AE%E6%98%A0%E5%B0%84%E3%80%81%E6%B5%AE%E9%9B%95%E6%98%A0%E5%B0%84"><span class="toc-number">5.1.</span> <span class="toc-text">1、还原法线映射、视差映射、浮雕映射</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%91%A0%E6%9C%AC%E8%8A%82%E4%B8%BE%E4%BE%8B%E9%A1%B9%E7%9B%AE%E5%B7%A5%E7%A8%8BURP%E4%BB%A3%E7%A0%81"><span class="toc-number">5.1.1.</span> <span class="toc-text">①本节举例项目工程URP代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%91%A1%E8%87%AA%E5%B7%B1%E5%8A%A8%E6%89%8B%E8%BF%98%E5%8E%9F"><span class="toc-number">5.1.2.</span> <span class="toc-text">②自己动手还原</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81%E4%B8%8A%E8%BF%B0%E7%9A%84%E5%BA%94%E7%94%A8%E6%A1%88%E4%BE%8B"><span class="toc-number">5.2.</span> <span class="toc-text">2、上述的应用案例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3%E3%80%81%E5%85%B7%E4%BD%93%E5%AE%9E%E8%B7%B5"><span class="toc-number">5.3.</span> <span class="toc-text">3、具体实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%A5%E5%85%85%EF%BC%9A"><span class="toc-number">5.3.1.</span> <span class="toc-text">补充：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4%E3%80%81Reference"><span class="toc-number">5.4.</span> <span class="toc-text">4、Reference</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/01/13/TA/%E5%8D%A1%E6%B8%B2-%E9%9D%A2%E9%83%A8/" title="二次元角色卡通渲染—面部篇"><img src="https://s2.loli.net/2022/10/18/LdtQzCPHTunSJ46.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="二次元角色卡通渲染—面部篇"/></a><div class="content"><a class="title" href="/2022/01/13/TA/%E5%8D%A1%E6%B8%B2-%E9%9D%A2%E9%83%A8/" title="二次元角色卡通渲染—面部篇">二次元角色卡通渲染—面部篇</a><time datetime="2022-01-12T16:00:00.000Z" title="发表于 2022-01-13 00:00:00">2022-01-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/02/TA/%E5%AE%9E%E6%97%B6%E9%98%B4%E5%BD%B1/" title="实时阴影"><img src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="实时阴影"/></a><div class="content"><a class="title" href="/2022/01/02/TA/%E5%AE%9E%E6%97%B6%E9%98%B4%E5%BD%B1/" title="实时阴影">实时阴影</a><time datetime="2022-01-01T16:00:00.000Z" title="发表于 2022-01-02 00:00:00">2022-01-02</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/07/20/TA/%E6%9B%B2%E9%9D%A2%E7%BB%86%E5%88%86%E7%9D%80%E8%89%B2%E5%99%A8/" title="曲面细分与几何着色器"><img src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="曲面细分与几何着色器"/></a><div class="content"><a class="title" href="/2021/07/20/TA/%E6%9B%B2%E9%9D%A2%E7%BB%86%E5%88%86%E7%9D%80%E8%89%B2%E5%99%A8/" title="曲面细分与几何着色器">曲面细分与几何着色器</a><time datetime="2021-07-19T16:00:00.000Z" title="发表于 2021-07-20 00:00:00">2021-07-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/07/03/TA/FlowMap/" title="FlowMap效果实现"><img src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="FlowMap效果实现"/></a><div class="content"><a class="title" href="/2021/07/03/TA/FlowMap/" title="FlowMap效果实现">FlowMap效果实现</a><time datetime="2021-07-02T16:00:00.000Z" title="发表于 2021-07-03 00:00:00">2021-07-03</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/06/17/TA/BumpMap%E5%87%B9%E5%87%B8%E6%98%A0%E5%B0%84/" title="BumpMap凹凸映射"><img src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="BumpMap凹凸映射"/></a><div class="content"><a class="title" href="/2021/06/17/TA/BumpMap%E5%87%B9%E5%87%B8%E6%98%A0%E5%B0%84/" title="BumpMap凹凸映射">BumpMap凹凸映射</a><time datetime="2021-06-16T16:00:00.000Z" title="发表于 2021-06-17 00:00:00">2021-06-17</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('https://i.loli.net/2021/09/18/4i9arEvR2qVc3OT.png')"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2022 By 迭代进心</div><div class="footer_custom_text">Graphics Study Station</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.css"><script>(() => {
+  document.querySelectorAll('#article-container span.katex-display').forEach(item => {
+    btf.wrap(item, 'div', { class: 'katex-wrap'})
+  })
+})()</script><script>function loadLivere () {
+  if (typeof LivereTower === 'object') {
+    window.LivereTower.init()
+  }
+  else {
+    (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+    })(document, 'script');
+  }
+}
+
+if ('Livere' === 'Livere' || !false) {
+  if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+  else loadLivere()
+}
+else {
+  function loadOtherComment () {
+    loadLivere()
+  }
+}</script></div><script defer="defer" id="fluttering_ribbon" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>function electric_clock_injector_config(){
+                var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+                var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img id="card-clock-loading" src="https://cdn.jsdelivr.net/gh/Zfour/Butterfly-clock/clock/images/weather/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading" class="entered loading"></div></div></div></div></div>';
+                console.log('已挂载electric_clock')
+                // parent_div_git.innerHTML=item_html+parent_div_git.innerHTML // 无报错，但不影响使用(支持pjax跳转)
+                parent_div_git.insertAdjacentHTML("afterbegin",item_html) // 有报错，但不影响使用(支持pjax跳转)
+            }if( document.getElementsByClassName('sticky_layout')[0] && (location.pathname ==='all'|| 'all' ==='all')){
+
+            electric_clock_injector_config()
+        } </script><script src="https://pv.sohu.com/cityjson?ie=utf-8"></script><script data-pjax  src="https://cdn.jsdelivr.net/gh/Zfour/hexo-electric-clock@1.0.6/clock.js"></script> <script data-pjax>if(document.getElementById('recent-posts') && location.pathname =='/'){
+    
+    var parent = document.getElementById('recent-posts');
+    var child = '<div class="recent-post-item" style="height: auto;width: 100%"><div class="blog-slider swiper-container-fade swiper-container-horizontal" id="swiper_container"><div class="blog-slider__wrp swiper-wrapper" style="transition-duration: 0ms"></div><div class="blog-slider__pagination swiper-pagination-clickable swiper-pagination-bullets"></div></div></div>';
+    console.log('已挂载swiper')
+    parent.insertAdjacentHTML("afterbegin",child)}
+     </script>
+<script data-pjax src="https://cdn.jsdelivr.net/gh/Zfour/Butterfly-swiper/swiper/swiper.min.js"></script>
+<script data-pjax src="https://cdn.jsdelivr.net/gh/Zfour/Butterfly-swiper@0.18/swiper/swiperindex.js"></script>
+<style></style>
+  <script data-pjax src="https://cdn.jsdelivr.net/gh/Zfour/hexo-github-calendar@1.21/hexo_githubcalendar.js"></script>
+  <script data-pjax>
+        function GithubCalendarConfig(){
+            var git_githubapiurl ="https://python-github-calendar-api.vercel.app/api?riaila";
+            var git_color =['#ebedf0', '#fdcdec', '#fc9bd9', '#fa6ac5', '#f838b2', '#f5089f', '#c4067e', '#92055e', '#540336', '#48022f', '#30021f'];
+            var git_user ="riaila";
+            var parent_div_git = document.getElementById('recent-posts');
+            var git_div_html = '<div class="recent-post-item" style="width:100%;height:auto;padding:10px;"><div id="github_loading" style="height:100%;display: flex;align-items: center;justify-content: center;"><svg style="height:50px" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"  viewBox="0 0 50 50" style="enable-background:new 0 0 50 50" xml:space="preserve"><path fill="#d0d0d0" d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z" transform="rotate(275.098 25 25)"><animateTransform attributeType="xml" attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.6s" repeatCount="indefinite"></animateTransform></path></svg></div><div id="github_container"></div></div>';
+            if(parent_div_git && location.pathname =='/'){
+                console.log('已挂载github calendar')
+                // parent_div_git.innerHTML=git_div_html+parent_div_git.innerHTML // 无报错，但不影响使用(支持pjax跳转)
+                parent_div_git.insertAdjacentHTML("afterbegin",git_div_html) // 有报错，但不影响使用(支持pjax跳转)
+            };
+            GithubCalendar(git_githubapiurl,git_color,git_user)
+        }
+        if(document.getElementById('recent-posts')){
+            GithubCalendarConfig()
+        }
+    </script>
+    <style>#github_container{min-height:248px}@media screen and (max-width:650px) {#github_container{background-image:;min-height:0px}}</style>
+    <style></style><!-- hexo injector body_end end --></body></html>

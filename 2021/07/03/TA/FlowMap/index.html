@@ -1,0 +1,630 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FlowMap效果实现 | 迭代进心的Graphics Study Station</title><meta name="keywords" content="TA"><meta name="author" content="迭代进心"><meta name="copyright" content="迭代进心"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="baidu-site-verification" content="code-yWIZfrbW9p"><meta name="description" content="一、什么是FlowMap 1、FlowMap   是Valve在2010年GDC中介绍的一种在求生之路2中用来实现水面流动效果的技术   容易实现，且运算量较小（所以到现在还在被使用）   使用了一张被称为flowmap的贴图，来达到控制场景中水面流向的效果   eg：      用到的flowmap     2、FlowMap的实质   是一张记录了向量场信息的纹理   理解：    假设有一个">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FlowMap效果实现">
+<meta property="og:url" content="https://riaila.github.io/2021/07/03/TA/FlowMap/index.html">
+<meta property="og:site_name" content="迭代进心的Graphics Study Station">
+<meta property="og:description" content="一、什么是FlowMap 1、FlowMap   是Valve在2010年GDC中介绍的一种在求生之路2中用来实现水面流动效果的技术   容易实现，且运算量较小（所以到现在还在被使用）   使用了一张被称为flowmap的贴图，来达到控制场景中水面流向的效果   eg：      用到的flowmap     2、FlowMap的实质   是一张记录了向量场信息的纹理   理解：    假设有一个">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg">
+<meta property="article:published_time" content="2021-07-02T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-07-02T16:00:00.000Z">
+<meta property="article:author" content="迭代进心">
+<meta property="article:tag" content="TA">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg"><link rel="shortcut icon" href="/img/cloud-meatball-solid.svg"><link rel="canonical" href="https://riaila.github.io/2021/07/03/TA/FlowMap/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":100},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'mediumZoom',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'FlowMap效果实现',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2021-07-03 00:00:00'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Zfour/hexo-electric-clock@1.0.6/clock.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Zfour/Butterfly-swiper/swiper/swiper.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Zfour/Butterfly-swiper/swiper/swiperstyle.css"><!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/maho.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">13</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 图库</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 影评</span></a></li><li><a class="site-page child" href="/game/"><i class="fa-fw fas fa-gamepad"></i><span> 游戏</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">迭代进心的Graphics Study Station</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 娱乐</span><i class="fas fa-chevron-down expand"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/gallery/"><i class="fa-fw fas fa-images"></i><span> 图库</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 影评</span></a></li><li><a class="site-page child" href="/game/"><i class="fa-fw fas fa-gamepad"></i><span> 游戏</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">FlowMap效果实现</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-07-02T16:00:00.000Z" title="发表于 2021-07-03 00:00:00">2021-07-03</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2021-07-02T16:00:00.000Z" title="更新于 2021-07-03 00:00:00">2021-07-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%8A%80%E6%9C%AF%E7%BE%8E%E6%9C%AF/">技术美术</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>5分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="FlowMap效果实现"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1>一、什么是FlowMap</h1>
+<h2 id="1、FlowMap">1、FlowMap</h2>
+<ul>
+<li>
+<p>是Valve在2010年GDC中介绍的一种在求生之路2中用来实现水面流动效果的技术</p>
+</li>
+<li>
+<p>容易实现，且运算量较小（所以到现在还在被使用）</p>
+</li>
+<li>
+<p>使用了一张被称为flowmap的贴图，来达到控制场景中水面流向的效果</p>
+</li>
+<li>
+<p>eg：</p>
+</li>
+<li>
+<ul>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1624176665497-1c391b11-193d-4061-b7a3-1621b6b1cf8f.png" alt="img"></li>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1624176695199-43eb9aec-21d7-47c6-9c8b-317ec2bba00a.png" alt="img"></li>
+<li>用到的flowmap</li>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1624176930673-3f0e85ad-9cac-4930-8f32-b59dfb5fbd63.png" alt="img"></li>
+</ul>
+</li>
+</ul>
+<h2 id="2、FlowMap的实质">2、FlowMap的实质</h2>
+<ul>
+<li>
+<p>是一张记录了向量场信息的纹理</p>
+</li>
+<li>
+<p><strong>理解</strong>：</p>
+</li>
+<li>
+<ul>
+<li>假设有一个2D平面，平面上每个点都对应一个向量，这个向量指向这个点接下来要运动的方向。</li>
+<li>我们通过颜色的色值（RG两个通道）来记录这些向量的信息，就得到了一张flowmap</li>
+<li>在shader中干扰uv（偏移uv），对纹理进行采样，这样就得到了一个模拟流动的效果</li>
+</ul>
+</li>
+<li>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1624177389570-58893b0a-2020-4661-8daa-f753d827aaa5.png" alt="img"></p>
+</li>
+</ul>
+<h2 id="3、回顾：UV映射（纹理映射）">3、回顾：UV映射（纹理映射）</h2>
+<ul>
+<li>
+<p>对一个贴图进行纹理查找，就要用到uv坐标</p>
+</li>
+<li>
+<p><strong>理解</strong>：</p>
+</li>
+<li>
+<ul>
+<li>如图为Unity中的uv坐标，类似于xy轴，用此uv坐标查找右边贴图的颜色值，采样会得到和贴图一模一样的结果</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1624186320582-c7465e1c-16da-4066-b269-d545cd7a0ecc.png" alt="img"></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>如图，如果改变查找时的uv坐标，让每一列都有相同的uv值，那么采样结果就是右图的条纹状的结果</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1624186326308-9dbe9d11-7bc9-4643-aff8-6255e32c7098.png" alt="img"></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>如图，如果用同一个uv值采样的话，结果就会是同一的颜色</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1624186342417-07abe08b-33f4-4638-b470-8cc122a09fa4.png" alt="img"></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>也就是说，uv贴图上颜色相同的地方：意味着采样纹理时使用了同一位置</p>
+</li>
+</ul>
+<h2 id="4、Flowmap的原理">4、Flowmap的原理</h2>
+<ul>
+<li>
+<p><strong>flowmap的原理</strong>：</p>
+</li>
+<li>
+<ul>
+<li>通过所带有的向量场信息对uv进行了一个偏移，来干扰我们采样时候的这个过程。</li>
+</ul>
+</li>
+<li>
+<p>如图可以看到，经过flowmap发生偏移后，让原本正常的采样变成了一个扭曲的效果</p>
+</li>
+<li>
+<p><strong>注意</strong>：</p>
+</li>
+<li>
+<ul>
+<li>不同软件的不同uv坐标：UE4与Unity相比，反转了绿通道，所以使用的flowmap也会发生变化。（根据不同的引擎需求进行调整）</li>
+</ul>
+</li>
+<li>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1624193334990-3c4970a8-5d88-44e4-880f-9cc27ae01b31.png" alt="img"></p>
+</li>
+</ul>
+<h2 id="5、为什么要使用flowmap">5、为什么要使用flowmap</h2>
+<ul>
+<li>
+<p>类似于uv动画的原理，而非顶点动画。也就是说不用对模型顶点进行操作，容易实现，性能开销小</p>
+</li>
+<li>
+<p>flowmap适用于任何流动相关的效果。</p>
+</li>
+<li>
+<ul>
+<li>例如：流动的天空球（运动的云群的效果）</li>
+</ul>
+</li>
+</ul>
+<h1>二、FlowMap Shader</h1>
+<h2 id="1、flowmap的实现（借助SG和desmos理解请细看课程-）">1、flowmap的实现（借助SG和desmos理解请细看课程 ）</h2>
+<h3 id="flowmap-shader的基本流程">flowmap shader的基本流程</h3>
+<ul>
+<li>1.采样flowmap获取向量场信息</li>
+<li>2.用向量场信息，使采样贴图时的uv随时间变化</li>
+<li>3.对同一贴图以半个周期的相位差采集两次，并线性插值，使贴图流动连续</li>
+</ul>
+<h3 id="实现思路">实现思路</h3>
+<p><strong>目标：根据flowmap上的值，使纹理随时间偏移</strong></p>
+<ul>
+<li>
+<p><strong>操作1</strong>：最简单的uv随时间偏移的方法：   uv - time</p>
+</li>
+<li>
+<ul>
+<li>关于为什么是相减：</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>先理解一下相加的情况：模型上的某个点（u，v）+（time，0）</li>
+<li>可以理解为随着time增加，采样到的像素越远</li>
+<li>这个效果在视觉上可以形容为：更远距离的像素偏移向这个点，也就是说和我们直观认识到的运算法则是<strong>相反</strong>的。</li>
+<li>用uv值作为向量时，是遵守运算法则的</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>uv偏移并没有改变顶点位置，只是采样到了更远的像素</li>
+</ul>
+</li>
+<li>
+<p><strong>操作2</strong>：从flowmap获取流动方向</p>
+</li>
+<li>
+<ul>
+<li>从flowmap获取流动的方向，再乘time，就可以达到让某个点根据flowmap流动的目的</li>
+<li>问题：flowmap不能直接使用</li>
+<li>解决：将flowmap上的色值从[0，1]映射到方向向量的[-1，1]</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>也就是一个乘2减1的操作，之前推导mvp矩阵时也用过这个方法</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>操作3</strong>：流动无缝循环，把偏移控制在一定的范围内（随着时间进行，变形太过夸张）</p>
+</li>
+<li>
+<ul>
+<li>构造两个相位相差半个周期的波形函数</li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>用相位差半个周期的两层采样进行加权混合，用纹理流动另一层采样来覆盖一个周期重新开始时的不自然情况</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="2、代码">2、代码</h2>
+<ul>
+<li>本节作业使用UE4完成，Unity的SG和shader代码后续实现后补充</li>
+<li>课程代码截图如下</li>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1624196170618-861a0b53-e9d8-4b1a-9330-ada8795ceb94.png" alt="img">qwewqe</li>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1624196256123-616765ed-9b02-4ddf-85b4-ae7f61307daf.png" alt="img"></li>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1624196354830-a830e55a-99fa-49bf-945a-843f3dba8e9a.png" alt="img"></li>
+</ul>
+<h2 id="3、用flowmap修改法线贴图">3、用flowmap修改法线贴图</h2>
+<ul>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1624196422807-2baecd99-bcb8-4342-a79a-2d38d27b9184.png" alt="img"></li>
+</ul>
+<h1>三、FlowMap的制作</h1>
+<h2 id="1、绘制过程">1、绘制过程</h2>
+<ul>
+<li>
+<p>Flowmap Painter</p>
+</li>
+<li>
+<ul>
+<li>下载地址：<a target="_blank" rel="noopener" href="http://teckartist.com/?page_id=107">http://teckartist.com/?page_id=107</a></li>
+<li>直接上手绘制即可，很简单</li>
+<li>可以使用反转UV通道选项，以便不同符合不同的引擎需求</li>
+<li><strong>注意</strong>：使用Flowmap Painter绘制得到的贴图为线性空间下的颜色，不需要伽马校正。（Unity里不用勾选sRGB）</li>
+</ul>
+</li>
+</ul>
+<h2 id="2、绘制工具">2、绘制工具</h2>
+<ul>
+<li>
+<p>Flowmap Painter</p>
+</li>
+<li>
+<p>Houdini</p>
+</li>
+<li>
+<ul>
+<li>//Houdini部分待补充</li>
+</ul>
+</li>
+</ul>
+<h2 id="3、注意事项">3、注意事项</h2>
+<ul>
+<li>
+<p>flowmap贴图的设置：</p>
+</li>
+<li>
+<ul>
+<li>要使用无压缩或高质量</li>
+<li>确认色彩空间</li>
+</ul>
+</li>
+</ul>
+<h1>##作业部分##</h1>
+<h2 id="1、结合课程，实现一个流动的效果">1、结合课程，实现一个流动的效果</h2>
+<h3 id="①使用Flowmap-Painter制作贴图并烘焙">①使用Flowmap Painter制作贴图并烘焙</h3>
+<ul>
+<li>
+<ul>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1624197148317-68298498-c05c-4c49-bb28-5eed5a5f2ee8.png" alt="img"></li>
+<li>注意：UE引擎烘焙时要勾选File Red选项（原因参考课程内）</li>
+</ul>
+</li>
+<li>
+<p>导入UE中，并且修改压缩格式</p>
+</li>
+<li>
+<ul>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1624197242284-87be6341-bd00-4aa7-818c-6f2dc2d66398.png" alt="img"></li>
+</ul>
+</li>
+</ul>
+<h3 id="②实现Flowmap的shader（UE中为材质连连看）">②实现Flowmap的shader（UE中为材质连连看）</h3>
+<ul>
+<li>
+<ul>
+<li>节点就不做具体解释了，都很清楚，对照着上边的实现步骤看即可</li>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1624198203884-5ebe6f83-3697-449d-b165-bc4a3cfeccc8.png" alt="img"></li>
+</ul>
+</li>
+<li>
+<p>采样noise图的效果如下</p>
+</li>
+</ul>
+<p>此处为语雀视频卡片，点击链接查看：<a target="_blank" rel="noopener" href="https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/ulk917#RNG52">flowmap_test.mp4</a></p>
+<h3 id="③将上边实现的flowmap的效果套用到这几天做得水shader中（用flowmap修改法线）">③将上边实现的flowmap的效果套用到这几天做得水shader中（用flowmap修改法线）</h3>
+<ul>
+<li>
+<p>用上边flowmap同样的思路采样水的法线贴图，给到Normal上（flowmap还是前边画的那张）</p>
+</li>
+<li>
+<ul>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1624374611897-a34da71a-3b6e-4800-adbb-30d9dd2821f5.png" alt="img"></li>
+</ul>
+</li>
+<li>
+<p>最终的就可以看到实现了一个水流动的效果（附带了利用UE4中Panner节点制作的水涟漪效果对比）</p>
+</li>
+<li>
+<p>顺序依次为Panner节点实现的水涟漪效果、flowmap采样法线贴图</p>
+</li>
+</ul>
+<p>此处为语雀视频卡片，点击链接查看：<a target="_blank" rel="noopener" href="https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/ulk917#qUHbf">Flowmap_Water.mp4</a></p>
+<h2 id="2-其他想法列举备忘">2.其他想法列举备忘</h2>
+<ul>
+<li>
+<p>梵高的星夜</p>
+</li>
+<li>
+<ul>
+<li>//待填坑：虽然动起来了，但是流动效果和我想的还是有一点出入，有时间再仔细重新画下flowmap</li>
+</ul>
+</li>
+</ul>
+<h2 id="二更：利用FlowMap让梵高的《The-Starry-Night》动起来">二更：利用FlowMap让梵高的《The Starry Night》动起来</h2>
+<ul>
+<li>这次我们不偷懒UE连连看，改用Unity来实现</li>
+</ul>
+<h3 id="①先看看效果">①先看看效果</h3>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/gif/12962324/1634536086863-d0154001-8524-417a-971e-387981cf7bb5.gif" alt="img"></p>
+<h3 id="②实现思路">②实现思路</h3>
+<ul>
+<li>
+<p>首先就是没有技术含量的画flowmap部分，使用的软件是FlowMapPainter</p>
+</li>
+<li>
+<ul>
+<li>//根据天空的波纹走向自由发挥</li>
+</ul>
+</li>
+<li>
+<p>整体思路就是让uv随着时间偏移，拿着这个uv来采样我们想让它动起来的《The Starry Night》</p>
+</li>
+</ul>
+<h3 id="③代码">③代码</h3>
+<ul>
+<li>
+<p><strong>代码思路</strong>：</p>
+</li>
+<li>
+<ul>
+<li><strong>a.读取flowmap中的流动方向</strong></li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>我们用正常uv采样这样FlowMap</li>
+<li>要注意的是：这张贴图是（0,1）的，我们需要将其Remap到（-1，1），也就是*2-1</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li><strong>b.让uv随时间变化</strong></li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>就是uv流动的思路，利用frac 和_Time实现</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<ul>
+<li><strong>c.实现变化的无缝衔接</strong></li>
+</ul>
+</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>为了解决变化的突兀感，我们需要构造两层采样，并用差值做一个Lerp</li>
+<li>当第一个周期的偏移趋近最大值时，它的权重会趋近0；此时第二个周期刚好偏移最小值</li>
+<li>这样就实现了一个平滑的循环效果</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>片元着色器截图</strong></p>
+</li>
+<li>
+<ul>
+<li><img src="https://cdn.nlark.com/yuque/0/2021/png/12962324/1634535407812-c105382f-6064-4037-943d-49eb18c6bf2a.png" alt="img"></li>
+</ul>
+</li>
+</ul>
+<p>[</p>
+<p>](<a target="_blank" rel="noopener" href="https://www.youtube.com/channel/UCoG9TB1eL6dm9eNbLFueHBQ">https://www.youtube.com/channel/UCoG9TB1eL6dm9eNbLFueHBQ</a>)</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">迭代进心</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://riaila.github.io/2021/07/03/TA/FlowMap/">https://riaila.github.io/2021/07/03/TA/FlowMap/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://riaila.github.io" target="_blank">迭代进心的Graphics Study Station</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/TA/">TA</a></div><div class="post_share"><div class="social-share" data-image="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2021/07/20/TA/%E6%9B%B2%E9%9D%A2%E7%BB%86%E5%88%86%E7%9D%80%E8%89%B2%E5%99%A8/"><img class="prev-cover" src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">曲面细分与几何着色器</div></div></a></div><div class="next-post pull-right"><a href="/2021/06/17/TA/BumpMap%E5%87%B9%E5%87%B8%E6%98%A0%E5%B0%84/"><img class="next-cover" src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">BumpMap凹凸映射</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span> 相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2020/10/23/TA/渲染管线/" title="什么是渲染管线——以OPENGL为例"><img class="cover" src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2020-10-23</div><div class="title">什么是渲染管线——以OPENGL为例</div></div></a></div><div><a href="/2021/06/17/TA/BumpMap凹凸映射/" title="BumpMap凹凸映射"><img class="cover" src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-06-17</div><div class="title">BumpMap凹凸映射</div></div></a></div><div><a href="/2021/06/11/TA/伽马（Gamma）校正/" title="伽马（Gamma）校正"><img class="cover" src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-06-11</div><div class="title">伽马（Gamma）校正</div></div></a></div><div><a href="/2021/06/01/TA/LDR，HDR/" title="LDR与HDR"><img class="cover" src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-06-01</div><div class="title">LDR与HDR</div></div></a></div><div><a href="/2021/07/20/TA/曲面细分着色器/" title="曲面细分与几何着色器"><img class="cover" src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-07-20</div><div class="title">曲面细分与几何着色器</div></div></a></div><div><a href="/2022/01/02/TA/实时阴影/" title="实时阴影"><img class="cover" src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-02</div><div class="title">实时阴影</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC81NDMxNC8zMDc4NQ=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/maho.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">迭代进心</div><div class="author-info__description">运气就是一阵风</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">13</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="mailto:wpwuqie@163.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a><a class="social-icon" href="https://i.loli.net/2021/09/18/m6XktaRc9pDWFQy.png" target="_blank" title="QQ"><i class="fab fa-qq"></i></a><a class="social-icon" href="https://www.zhihu.com/people/xia-bu-44/posts" target="_blank" title="知乎"><i class="fab fa-zhihu"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">欢迎来到本站！转载文章请标明出处！谢谢！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">1.</span> <span class="toc-text">一、什么是FlowMap</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81FlowMap"><span class="toc-number">1.1.</span> <span class="toc-text">1、FlowMap</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81FlowMap%E7%9A%84%E5%AE%9E%E8%B4%A8"><span class="toc-number">1.2.</span> <span class="toc-text">2、FlowMap的实质</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3%E3%80%81%E5%9B%9E%E9%A1%BE%EF%BC%9AUV%E6%98%A0%E5%B0%84%EF%BC%88%E7%BA%B9%E7%90%86%E6%98%A0%E5%B0%84%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">3、回顾：UV映射（纹理映射）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4%E3%80%81Flowmap%E7%9A%84%E5%8E%9F%E7%90%86"><span class="toc-number">1.4.</span> <span class="toc-text">4、Flowmap的原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E4%BD%BF%E7%94%A8flowmap"><span class="toc-number">1.5.</span> <span class="toc-text">5、为什么要使用flowmap</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">2.</span> <span class="toc-text">二、FlowMap Shader</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81flowmap%E7%9A%84%E5%AE%9E%E7%8E%B0%EF%BC%88%E5%80%9F%E5%8A%A9SG%E5%92%8Cdesmos%E7%90%86%E8%A7%A3%E8%AF%B7%E7%BB%86%E7%9C%8B%E8%AF%BE%E7%A8%8B-%EF%BC%89"><span class="toc-number">2.1.</span> <span class="toc-text">1、flowmap的实现（借助SG和desmos理解请细看课程 ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#flowmap-shader%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%B5%81%E7%A8%8B"><span class="toc-number">2.1.1.</span> <span class="toc-text">flowmap shader的基本流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF"><span class="toc-number">2.1.2.</span> <span class="toc-text">实现思路</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81%E4%BB%A3%E7%A0%81"><span class="toc-number">2.2.</span> <span class="toc-text">2、代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3%E3%80%81%E7%94%A8flowmap%E4%BF%AE%E6%94%B9%E6%B3%95%E7%BA%BF%E8%B4%B4%E5%9B%BE"><span class="toc-number">2.3.</span> <span class="toc-text">3、用flowmap修改法线贴图</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">3.</span> <span class="toc-text">三、FlowMap的制作</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81%E7%BB%98%E5%88%B6%E8%BF%87%E7%A8%8B"><span class="toc-number">3.1.</span> <span class="toc-text">1、绘制过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81%E7%BB%98%E5%88%B6%E5%B7%A5%E5%85%B7"><span class="toc-number">3.2.</span> <span class="toc-text">2、绘制工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3%E3%80%81%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">3.3.</span> <span class="toc-text">3、注意事项</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">4.</span> <span class="toc-text">##作业部分##</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81%E7%BB%93%E5%90%88%E8%AF%BE%E7%A8%8B%EF%BC%8C%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E6%B5%81%E5%8A%A8%E7%9A%84%E6%95%88%E6%9E%9C"><span class="toc-number">4.1.</span> <span class="toc-text">1、结合课程，实现一个流动的效果</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%91%A0%E4%BD%BF%E7%94%A8Flowmap-Painter%E5%88%B6%E4%BD%9C%E8%B4%B4%E5%9B%BE%E5%B9%B6%E7%83%98%E7%84%99"><span class="toc-number">4.1.1.</span> <span class="toc-text">①使用Flowmap Painter制作贴图并烘焙</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%91%A1%E5%AE%9E%E7%8E%B0Flowmap%E7%9A%84shader%EF%BC%88UE%E4%B8%AD%E4%B8%BA%E6%9D%90%E8%B4%A8%E8%BF%9E%E8%BF%9E%E7%9C%8B%EF%BC%89"><span class="toc-number">4.1.2.</span> <span class="toc-text">②实现Flowmap的shader（UE中为材质连连看）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%91%A2%E5%B0%86%E4%B8%8A%E8%BE%B9%E5%AE%9E%E7%8E%B0%E7%9A%84flowmap%E7%9A%84%E6%95%88%E6%9E%9C%E5%A5%97%E7%94%A8%E5%88%B0%E8%BF%99%E5%87%A0%E5%A4%A9%E5%81%9A%E5%BE%97%E6%B0%B4shader%E4%B8%AD%EF%BC%88%E7%94%A8flowmap%E4%BF%AE%E6%94%B9%E6%B3%95%E7%BA%BF%EF%BC%89"><span class="toc-number">4.1.3.</span> <span class="toc-text">③将上边实现的flowmap的效果套用到这几天做得水shader中（用flowmap修改法线）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%85%B6%E4%BB%96%E6%83%B3%E6%B3%95%E5%88%97%E4%B8%BE%E5%A4%87%E5%BF%98"><span class="toc-number">4.2.</span> <span class="toc-text">2.其他想法列举备忘</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E6%9B%B4%EF%BC%9A%E5%88%A9%E7%94%A8FlowMap%E8%AE%A9%E6%A2%B5%E9%AB%98%E7%9A%84%E3%80%8AThe-Starry-Night%E3%80%8B%E5%8A%A8%E8%B5%B7%E6%9D%A5"><span class="toc-number">4.3.</span> <span class="toc-text">二更：利用FlowMap让梵高的《The Starry Night》动起来</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%91%A0%E5%85%88%E7%9C%8B%E7%9C%8B%E6%95%88%E6%9E%9C"><span class="toc-number">4.3.1.</span> <span class="toc-text">①先看看效果</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%91%A1%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF"><span class="toc-number">4.3.2.</span> <span class="toc-text">②实现思路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%91%A2%E4%BB%A3%E7%A0%81"><span class="toc-number">4.3.3.</span> <span class="toc-text">③代码</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/01/13/TA/%E5%8D%A1%E6%B8%B2-%E9%9D%A2%E9%83%A8/" title="二次元角色卡通渲染—面部篇"><img src="https://s2.loli.net/2022/10/18/LdtQzCPHTunSJ46.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="二次元角色卡通渲染—面部篇"/></a><div class="content"><a class="title" href="/2022/01/13/TA/%E5%8D%A1%E6%B8%B2-%E9%9D%A2%E9%83%A8/" title="二次元角色卡通渲染—面部篇">二次元角色卡通渲染—面部篇</a><time datetime="2022-01-12T16:00:00.000Z" title="发表于 2022-01-13 00:00:00">2022-01-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/02/TA/%E5%AE%9E%E6%97%B6%E9%98%B4%E5%BD%B1/" title="实时阴影"><img src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="实时阴影"/></a><div class="content"><a class="title" href="/2022/01/02/TA/%E5%AE%9E%E6%97%B6%E9%98%B4%E5%BD%B1/" title="实时阴影">实时阴影</a><time datetime="2022-01-01T16:00:00.000Z" title="发表于 2022-01-02 00:00:00">2022-01-02</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/07/20/TA/%E6%9B%B2%E9%9D%A2%E7%BB%86%E5%88%86%E7%9D%80%E8%89%B2%E5%99%A8/" title="曲面细分与几何着色器"><img src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="曲面细分与几何着色器"/></a><div class="content"><a class="title" href="/2021/07/20/TA/%E6%9B%B2%E9%9D%A2%E7%BB%86%E5%88%86%E7%9D%80%E8%89%B2%E5%99%A8/" title="曲面细分与几何着色器">曲面细分与几何着色器</a><time datetime="2021-07-19T16:00:00.000Z" title="发表于 2021-07-20 00:00:00">2021-07-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/07/03/TA/FlowMap/" title="FlowMap效果实现"><img src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="FlowMap效果实现"/></a><div class="content"><a class="title" href="/2021/07/03/TA/FlowMap/" title="FlowMap效果实现">FlowMap效果实现</a><time datetime="2021-07-02T16:00:00.000Z" title="发表于 2021-07-03 00:00:00">2021-07-03</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/06/17/TA/BumpMap%E5%87%B9%E5%87%B8%E6%98%A0%E5%B0%84/" title="BumpMap凹凸映射"><img src="https://i.loli.net/2021/09/23/GWUt48cxZHjEFqb.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="BumpMap凹凸映射"/></a><div class="content"><a class="title" href="/2021/06/17/TA/BumpMap%E5%87%B9%E5%87%B8%E6%98%A0%E5%B0%84/" title="BumpMap凹凸映射">BumpMap凹凸映射</a><time datetime="2021-06-16T16:00:00.000Z" title="发表于 2021-06-17 00:00:00">2021-06-17</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('https://i.loli.net/2021/09/18/4i9arEvR2qVc3OT.png')"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2022 By 迭代进心</div><div class="footer_custom_text">Graphics Study Station</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.css"><script>(() => {
+  document.querySelectorAll('#article-container span.katex-display').forEach(item => {
+    btf.wrap(item, 'div', { class: 'katex-wrap'})
+  })
+})()</script><script>function loadLivere () {
+  if (typeof LivereTower === 'object') {
+    window.LivereTower.init()
+  }
+  else {
+    (function(d, s) {
+        var j, e = d.getElementsByTagName(s)[0];
+        if (typeof LivereTower === 'function') { return; }
+        j = d.createElement(s);
+        j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+        j.async = true;
+        e.parentNode.insertBefore(j, e);
+    })(document, 'script');
+  }
+}
+
+if ('Livere' === 'Livere' || !false) {
+  if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+  else loadLivere()
+}
+else {
+  function loadOtherComment () {
+    loadLivere()
+  }
+}</script></div><script defer="defer" id="fluttering_ribbon" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div><!-- hexo injector body_end start --><script data-pjax>function electric_clock_injector_config(){
+                var parent_div_git = document.getElementsByClassName('sticky_layout')[0];
+                var item_html = '<div class="card-widget card-clock"><div class="card-glass"><div class="card-background"><div class="card-content"><div id="hexo_electric_clock"><img id="card-clock-loading" src="https://cdn.jsdelivr.net/gh/Zfour/Butterfly-clock/clock/images/weather/loading.gif" style="height: 120px; width: 100%;" data-ll-status="loading" class="entered loading"></div></div></div></div></div>';
+                console.log('已挂载electric_clock')
+                // parent_div_git.innerHTML=item_html+parent_div_git.innerHTML // 无报错，但不影响使用(支持pjax跳转)
+                parent_div_git.insertAdjacentHTML("afterbegin",item_html) // 有报错，但不影响使用(支持pjax跳转)
+            }if( document.getElementsByClassName('sticky_layout')[0] && (location.pathname ==='all'|| 'all' ==='all')){
+
+            electric_clock_injector_config()
+        } </script><script src="https://pv.sohu.com/cityjson?ie=utf-8"></script><script data-pjax  src="https://cdn.jsdelivr.net/gh/Zfour/hexo-electric-clock@1.0.6/clock.js"></script> <script data-pjax>if(document.getElementById('recent-posts') && location.pathname =='/'){
+    
+    var parent = document.getElementById('recent-posts');
+    var child = '<div class="recent-post-item" style="height: auto;width: 100%"><div class="blog-slider swiper-container-fade swiper-container-horizontal" id="swiper_container"><div class="blog-slider__wrp swiper-wrapper" style="transition-duration: 0ms"></div><div class="blog-slider__pagination swiper-pagination-clickable swiper-pagination-bullets"></div></div></div>';
+    console.log('已挂载swiper')
+    parent.insertAdjacentHTML("afterbegin",child)}
+     </script>
+<script data-pjax src="https://cdn.jsdelivr.net/gh/Zfour/Butterfly-swiper/swiper/swiper.min.js"></script>
+<script data-pjax src="https://cdn.jsdelivr.net/gh/Zfour/Butterfly-swiper@0.18/swiper/swiperindex.js"></script>
+<style></style>
+  <script data-pjax src="https://cdn.jsdelivr.net/gh/Zfour/hexo-github-calendar@1.21/hexo_githubcalendar.js"></script>
+  <script data-pjax>
+        function GithubCalendarConfig(){
+            var git_githubapiurl ="https://python-github-calendar-api.vercel.app/api?riaila";
+            var git_color =['#ebedf0', '#fdcdec', '#fc9bd9', '#fa6ac5', '#f838b2', '#f5089f', '#c4067e', '#92055e', '#540336', '#48022f', '#30021f'];
+            var git_user ="riaila";
+            var parent_div_git = document.getElementById('recent-posts');
+            var git_div_html = '<div class="recent-post-item" style="width:100%;height:auto;padding:10px;"><div id="github_loading" style="height:100%;display: flex;align-items: center;justify-content: center;"><svg style="height:50px" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"  viewBox="0 0 50 50" style="enable-background:new 0 0 50 50" xml:space="preserve"><path fill="#d0d0d0" d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z" transform="rotate(275.098 25 25)"><animateTransform attributeType="xml" attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.6s" repeatCount="indefinite"></animateTransform></path></svg></div><div id="github_container"></div></div>';
+            if(parent_div_git && location.pathname =='/'){
+                console.log('已挂载github calendar')
+                // parent_div_git.innerHTML=git_div_html+parent_div_git.innerHTML // 无报错，但不影响使用(支持pjax跳转)
+                parent_div_git.insertAdjacentHTML("afterbegin",git_div_html) // 有报错，但不影响使用(支持pjax跳转)
+            };
+            GithubCalendar(git_githubapiurl,git_color,git_user)
+        }
+        if(document.getElementById('recent-posts')){
+            GithubCalendarConfig()
+        }
+    </script>
+    <style>#github_container{min-height:248px}@media screen and (max-width:650px) {#github_container{background-image:;min-height:0px}}</style>
+    <style></style><!-- hexo injector body_end end --></body></html>
